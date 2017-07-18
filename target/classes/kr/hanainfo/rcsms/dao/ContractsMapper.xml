@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.hanainfo.rcsms.dao.ContractsMapper">
+
+    <resultMap id="contractsMap" type="kr.hanainfo.rcsms.dao.ContractsVo">
+        <id     property="idx"    column="idx" /> 
+        <result property="title" column="title" />
+        <result property="buyDate" column="buyDate" />
+        <result property="cCount" column="cCount" />
+        <result property="cCode" column="cCode" />
+        <result property="dateCode" column="dateCode" />
+        <result property="cDesc" column="cDesc" />
+        <result property="cName" column="cName" />
+        <result property="phone" column="phone" />
+        <result property="email" column="email" />
+        <result property="fee" column="fee" />
+        <result property="cDesc2" column="cDesc2" />
+        <result property="startDate" column="startDate" />
+        <result property="endDate" column="endDate" />
+        <result property="company" column="company" />
+        <result property="carName" column="carName" />
+        <result property="feeType" column="feeType" />
+        <result property="op1" column="op1" />
+        <result property="op2" column="op2" />
+        <result property="op3" column="op3" />
+        <result property="op4" column="op4" />
+        <result property="op5" column="op5" />
+        <result property="regDate" column="regDate" />
+        <result property="sendSMS" column="sendSMS" />
+    </resultMap>
+
+
+    <select id="select" resultMap="contractsMap">
+        SELECT * FROM contracts
+    </select>
+    
+    <select id="selectOne" resultMap="contractsMap">
+    	SELECT * FROM contracts WHERE cCode = #{cCode}
+    </select>
+    
+<!--     
+    <select id="selectSpecificOwnerId" resultMap="photosMap">
+    	SELECT * FROM photos WHERE owner_id = #{owner_id}
+    </select>
+    
+    <select id="selectRandomPhoto" resultMap="photosMap">
+    	SELECT * FROM photos ORDER BY RAND() LIMIT 1; 
+    </select>
+ -->
+    <insert id="insert">
+         INSERT INTO contracts ( title, buyDate, cCount, cCode, dateCode, cDesc, cName, phone, email, fee, 
+                                 cDesc2, startDate, endDate, company, carName, feeType, op1, op2, op3, op4, op5, regDate ) VALUES (
+                #{title}
+              , #{buyDate}
+              , #{cCount}
+              , #{cCode}
+              , #{dateCode}
+              , #{cDesc}
+              , #{cName}
+              , #{phone}
+              , #{email}
+              , #{fee}
+              , #{cDesc2}
+              , #{startDate}
+              , #{endDate}
+              , #{company}
+              , #{carName}
+              , #{feeType}
+              , #{op1}
+              , #{op2}
+              , #{op3}
+              , #{op4}
+              , #{op5}
+              , NOW()
+         )
+    </insert>
+<!-- 
+    <delete id="delete">
+    	DELETE FROM photos WHERE idx = #{idx}
+    </delete>
+    
+    <delete id="deleteSpecificPhoto">
+    	DELETE FROM photos WHERE idx = #{idx}
+    </delete>
+    
+    <select id="selectSpecificIdx" resultMap="photosMap">
+    	SELECT * FROM photos WHERE idx = #{idx}
+    </select>
+ -->
+</mapper>
