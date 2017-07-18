@@ -473,19 +473,15 @@ function goWithUpload() {
 </script>
 
 <body style="overflow-y: auto;">
-	<form id="target" method="POST" action="uploadFile" enctype="multipart/form-data">
-		File to upload: <input type="file" name="file">
-		<input type="submit" value="Upload" onclick="goWithUpload()">
-	</form>	
+	<div id="header">
+		<form id="target" method="POST" action="uploadFile" enctype="multipart/form-data">
+			<button class="replace">엑셀파일선택</button><input type="file" name="file" class="upload">
+			<input type="submit" value="업로드" onclick="goWithUpload()">
+			<input type="text" id="datepicker" placeholder="날짜선택">
+		</form>	
+	</div>
 	
-	<input type="text" id="datepicker" placeholder="날짜선택"> 
-	<!-- 
-	<input id="btn_sa" type="button" value="Select All" onclick="selectAll()">
-	<input id="btn_del" type="button" value="Delete Selected" onclick="deleteSelectedPhoto()">
-	 -->
-	<hr>
-	
-	<div>
+	<div style="padding:10px;margin-top:20px;background-color:#1abc9c;">
 		<table id="contractTb" border=1>
 		</table>
 	</div>
