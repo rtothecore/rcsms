@@ -18,6 +18,10 @@ public class ContractsDao {
     public ContractsVo getSelectOne(String cCode) {
     	return this.contractsMapper.selectOne(cCode);
     }
+    
+    public List<ContractsVo> getSelectWithDate(String regDate) {
+    	return this.contractsMapper.selectWithDate(regDate);
+    }
 /*   
     public List<ContractsVo> selectSpecificOwnerId(String owner_id) {
     	return this.photosMapper.selectSpecificOwnerId(owner_id);

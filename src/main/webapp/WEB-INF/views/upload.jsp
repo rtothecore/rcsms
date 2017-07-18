@@ -9,8 +9,10 @@
 </head>
 <link rel="stylesheet" type="text/css" href="./resources/css/common.css">
 <link rel="stylesheet" type="text/css" href="./resources/css/jquery.mloading.css">
+<link rel="stylesheet" type="text/css" href="./resources/css/jquery-ui.min.css">
 
 <script src="./resources/js/jquery-3.1.1.min.js" charset="utf-8"></script>
+<script src="./resources/js/jquery-ui.min.js" charset="utf-8"></script>
 <script src="./resources/js/jquery.mloading.js"></script>
 <script src="http://malsup.github.com/jquery.form.js"></script>
 <script src="https://apis.google.com/js/client.js?onload=load" async defer></script>
@@ -30,6 +32,27 @@ function load() {
 				 },
 			     complete: function(xhr) {
 				 }
+			 });
+			 
+			 // date picker
+			 $("#datepicker").datepicker({
+				 changeMonth: true, 
+		         changeYear: true,
+		         nextText: '다음 달',
+		         prevText: '이전 달',
+		         
+		         showButtonPanel: true, 
+		         currentText: '오늘 날짜', 
+		         closeText: '닫기', 
+		         dateFormat: "yy-mm-dd",
+		         
+		         dayNames: ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'],
+		         dayNamesMin: ['일', '월', '화', '수', '목', '금', '토'], 
+		         monthNamesShort: ['1','2','3','4','5','6','7','8','9','10','11','12'],
+		         monthNames: ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월']
+			 }).on("change", function (e) {
+			        console.log("Date changed: ", e.target.value);
+			        getContractsWithDate(e.target.value);
 			 });
 		 });		 
 	 });
@@ -54,6 +77,166 @@ function createShortURL(longURL, shortURL) {
 	    } else {
 	        console.log("error: creating short url");
 	    }
+	});
+}
+
+function getContractsWithDate(dateValue) {
+	$("body").mLoading();
+	
+	var ctrData = {};
+	ctrData["regDate"] = dateValue;
+	
+	$.ajax({
+		type: 'POST',
+		contentType: "application/json",
+		url:'./getContractsWithDate',
+		data: JSON.stringify(ctrData),
+		dataType: 'json',
+		success: function(data){
+			console.log("SUCCESS: ", data);
+			display(data);
+			
+			$("#contractTb tr").remove();
+			
+			for(var i in data) {
+				var tr = document.createElement("tr");
+				
+				var td = document.createElement("td");
+				var rowNum = data[i].idx;
+				td.setAttribute("id", "rowNum" + rowNum);
+				td.innerHTML = rowNum;
+				tr.append(td);
+				
+				td = document.createElement("td");
+				td.innerHTML = data[i].title;
+				tr.append(td);
+				
+				td = document.createElement("td");
+				td.innerHTML = data[i].buyDate;
+				tr.append(td);
+				
+				td = document.createElement("td");
+				td.innerHTML = data[i].cCount;
+				tr.append(td);
+				
+				td = document.createElement("td");
+				td.innerHTML = data[i].cCode;
+				tr.append(td);
+				
+				td = document.createElement("td");
+				td.innerHTML = data[i].dateCode;
+				tr.append(td);
+				
+				td = document.createElement("td");
+				td.innerHTML = data[i].cDesc;
+				tr.append(td);
+				
+				td = document.createElement("td");
+				td.innerHTML = data[i].cName;
+				tr.append(td);
+				
+				td = document.createElement("td");
+				td.innerHTML = data[i].phone;
+				tr.append(td);
+				
+				td = document.createElement("td");
+				td.innerHTML = data[i].email;
+				tr.append(td);
+				
+				td = document.createElement("td");
+				td.innerHTML = data[i].fee;
+				tr.append(td);
+				
+				td = document.createElement("td");
+				td.innerHTML = data[i].cDesc2;
+				tr.append(td);
+				
+				td = document.createElement("td");
+				td.innerHTML = data[i].startDate;
+				tr.append(td);
+				
+				td = document.createElement("td");
+				td.innerHTML = data[i].endDate;
+				tr.append(td);
+				
+				td = document.createElement("td");
+				td.innerHTML = data[i].company;
+				tr.append(td);
+				
+				td = document.createElement("td");
+				td.innerHTML = data[i].carName;
+				tr.append(td);
+				
+				td = document.createElement("td");
+				td.innerHTML = data[i].feeType;
+				tr.append(td);
+				
+				td = document.createElement("td");
+				td.innerHTML = data[i].regDate;
+				tr.append(td);
+				
+				td = document.createElement("td");
+				aTag = document.createElement("a");
+				var contractLink = "http://hanainfo.kr:8080/rcsms/" + data[i].cCode;
+				aTag.setAttribute("href", contractLink);
+				aTag.innerHTML = "예약내역link";
+				td.append(aTag);
+				tr.append(td);
+				
+				td = document.createElement("td");
+				btn_link = document.createElement("button");
+				btn_link.setAttribute("id", data[i].cCode);
+				btn_link.innerHTML = "링크복사";
+				btn_link.onclick = function() {
+					var linkStr = "http://hanainfo.kr:8080/rcsms/" + this.id;
+					
+					var request = gapi.client.urlshortener.url.insert({
+					    'resource' : {
+					        'longUrl' : linkStr
+					    }
+					});
+					request.execute(function(response) {
+					    if (response.id != null) {        
+					        console.log(response.id);
+					        copyToClipboard(response.id);
+					    } else {
+					        console.log("error: creating short url");
+					    }
+					});
+				}
+				td.append(btn_link);
+				tr.append(td);
+				
+				if(checkFrontName(i, data[i].cName, data)) {
+					var tdRowSpan = checkDuplName(i, data[i].cName, data);
+					
+					td = document.createElement("td");
+					td.setAttribute("rowspan", tdRowSpan);
+					
+					if('N' == data[i].sendSMS) {
+						var button = document.createElement("button");
+						button.setAttribute("id", data[i].cCode);
+						button.setAttribute("data-rowNum", data[i].idx);
+						button.innerHTML = data[i].cName + "님께 SMS 전송";
+						button.onclick = function() {
+							sendSMS(this.getAttribute("data-rowNum"), data);				
+						};
+						td.append(button);
+					} else {
+						td.innerHTML = "SMS 전송완료";
+					}
+					
+					tr.append(td);	
+				}
+				
+				$("#contractTb").append(tr);				
+			}
+			$("body").mLoading('hide');
+		},
+		error: function (e) {
+			console.log("ERROR: ", e);
+			display(e);
+        }
 	});
 }
 
@@ -295,6 +478,7 @@ function goWithUpload() {
 		<input type="submit" value="Upload" onclick="goWithUpload()">
 	</form>	
 	
+	<input type="text" id="datepicker" placeholder="날짜선택"> 
 	<!-- 
 	<input id="btn_sa" type="button" value="Select All" onclick="selectAll()">
 	<input id="btn_del" type="button" value="Delete Selected" onclick="deleteSelectedPhoto()">

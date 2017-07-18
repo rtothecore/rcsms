@@ -38,6 +38,10 @@
     	SELECT * FROM contracts WHERE cCode = #{cCode}
     </select>
     
+    <select id="selectWithDate" resultMap="contractsMap">
+    	SELECT * FROM contracts WHERE regDate = #{regDate}
+    </select>
+    
 <!--     
     <select id="selectSpecificOwnerId" resultMap="photosMap">
     	SELECT * FROM photos WHERE owner_id = #{owner_id}
@@ -71,7 +75,7 @@
               , #{op3}
               , #{op4}
               , #{op5}
-              , NOW()
+              , CURDATE()
          )
     </insert>
 <!-- 

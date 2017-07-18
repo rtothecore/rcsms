@@ -356,6 +356,17 @@ public class FileUploadController {
 
 		return list;
 	}
+	
+	/**
+	 * Get list of contracts with date 
+	 */
+	@RequestMapping(value = "/getContractsWithDate", method = RequestMethod.POST)
+	public @ResponseBody List<ContractsVo> getContractsWithDate(@RequestBody ContractsVo cv, HttpSession session) {
+		logger.info("Get list of contracts");
+		List<ContractsVo> list = this.contractsDao.getSelectWithDate(cv.getRegDate());
+
+		return list;
+	}
 
 	/**
 	 * Send SMS
