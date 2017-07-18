@@ -285,7 +285,11 @@ public class FileUploadController {
 						contractsVo.setOp4("");
 						contractsVo.setOp5("");
 						
-						this.contractsDao.insert(contractsVo);
+						// 4-1. check duplicated cCode
+						if( null == this.contractsDao.getSelectOne(contractsVo.getcCode()) ) {
+							// 4-2. insert unduplicated data
+							this.contractsDao.insert(contractsVo);
+						}
 						accessRowIdx++;
 					}
 					workbook.close();

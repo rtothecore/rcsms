@@ -30,7 +30,6 @@ public class ContractsDao {
     public void insert(ContractsVo contractsVo) {
          this.contractsMapper.insert(contractsVo);
     }
-
 /*
     public void delete(String id) {
          this.photosMapper.delete(id);
