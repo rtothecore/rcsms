@@ -22,6 +22,18 @@ public class ContractsDao {
     public List<ContractsVo> getSelectWithDate(String regDate) {
     	return this.contractsMapper.selectWithDate(regDate);
     }
+    
+    public List<ContractsVo> getSelectWithDataNSendSMS(String regDate) {
+    	return this.contractsMapper.selectWithDataNSendSMS(regDate);
+    }
+    
+    public void updateSendSMS(String idx) {
+    	this.contractsMapper.updateSendSMS(idx);
+    }
+    
+    public void updateShortURL(String idx, String shortURL) {
+    	this.contractsMapper.updateShortURL(idx, shortURL);
+    }
 /*   
     public List<ContractsVo> selectSpecificOwnerId(String owner_id) {
     	return this.photosMapper.selectSpecificOwnerId(owner_id);

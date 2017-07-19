@@ -22,12 +22,13 @@ function load() {
 	 gapi.load('client', function(){
 		 gapi.client.setApiKey('AIzaSyD3NFSJbOhjUGJlW1cQdCopPqcOkSnUNWA');      
 		 gapi.client.load('urlshortener', 'v1',function(){
-			 setTimeout("getContracts()", 250);
+			 //setTimeout("getContractsWithDate(todayDate)", 250);
+			 getContractsWithDate();
 			 
 			 // ajax file upload
 			 $('form').ajaxForm({
 				 success: function() {
-					 getContracts();
+					 getContractsWithDate();
 					 $("body").mLoading('hide');
 				 },
 			     complete: function(xhr) {
@@ -52,7 +53,7 @@ function load() {
 		         monthNames: ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월']
 			 }).on("change", function (e) {
 			        //console.log("Date changed: ", e.target.value);
-			        getContractsWithDate(e.target.value);
+			        getContractsWithDate();
 			 });
 		 });		 
 	 });
@@ -80,8 +81,15 @@ function createShortURL(longURL, shortURL) {
 	});
 }
 
-function getContractsWithDate(dateValue) {
+function getContractsWithDate() {
 	$("body").mLoading();
+	
+	var dateValue = ""
+	if(null == $("#datepicker").val() || "" == $("#datepicker").val()) {
+		dateValue = getTodayDate();
+	} else {
+		dateValue = $("#datepicker").val();
+	}
 	
 	var ctrData = {};
 	ctrData["regDate"] = dateValue;
@@ -219,7 +227,7 @@ function getContractsWithDate(dateValue) {
 						button.setAttribute("data-rowNum", data[i].idx);
 						button.innerHTML = data[i].cName + "님께 SMS 전송";
 						button.onclick = function() {
-							sendSMS(this.getAttribute("data-rowNum"), data);				
+							sendSMS(this.getAttribute("data-rowNum"), data, this.parentElement.getAttribute("rowspan"));				
 						};
 						td.append(button);
 					} else {
@@ -240,168 +248,18 @@ function getContractsWithDate(dateValue) {
 	});
 }
 
-function getContracts() {
-	$("body").mLoading();
+function sendSMS(dataIdx, data, rowspanValue) {
+	$("body").mLoading({
+		  text:"Sending SMS...",
+	});
 	
-	$.ajax({
-		type: 'POST',
-		contentType: "application/json",
-		url:'./getContracts',
-		dataType: 'json',
-		success: function(data){
-			//console.log("SUCCESS: ", data);
-			//display(data);
-			
-			$("#contractTb tr").remove();
-			
-			for(var i in data) {
-				var tr = document.createElement("tr");
-				
-				var td = document.createElement("td");
-				var rowNum = data[i].idx;
-				td.setAttribute("id", "rowNum" + rowNum);
-				td.innerHTML = rowNum;
-				tr.append(td);
-				
-				td = document.createElement("td");
-				td.innerHTML = data[i].title;
-				tr.append(td);
-				
-				td = document.createElement("td");
-				td.innerHTML = data[i].buyDate;
-				tr.append(td);
-				
-				td = document.createElement("td");
-				td.innerHTML = data[i].cCount;
-				tr.append(td);
-				
-				td = document.createElement("td");
-				td.innerHTML = data[i].cCode;
-				tr.append(td);
-				
-				td = document.createElement("td");
-				td.innerHTML = data[i].dateCode;
-				tr.append(td);
-				
-				td = document.createElement("td");
-				td.innerHTML = data[i].cDesc;
-				tr.append(td);
-				
-				td = document.createElement("td");
-				td.innerHTML = data[i].cName;
-				tr.append(td);
-				
-				td = document.createElement("td");
-				td.innerHTML = data[i].phone;
-				tr.append(td);
-				
-				td = document.createElement("td");
-				td.innerHTML = data[i].email;
-				tr.append(td);
-				
-				td = document.createElement("td");
-				td.innerHTML = data[i].fee;
-				tr.append(td);
-				
-				td = document.createElement("td");
-				td.innerHTML = data[i].cDesc2;
-				tr.append(td);
-				
-				td = document.createElement("td");
-				td.innerHTML = data[i].startDate;
-				tr.append(td);
-				
-				td = document.createElement("td");
-				td.innerHTML = data[i].endDate;
-				tr.append(td);
-				
-				td = document.createElement("td");
-				td.innerHTML = data[i].company;
-				tr.append(td);
-				
-				td = document.createElement("td");
-				td.innerHTML = data[i].carName;
-				tr.append(td);
-				
-				td = document.createElement("td");
-				td.innerHTML = data[i].feeType;
-				tr.append(td);
-				
-				td = document.createElement("td");
-				td.innerHTML = data[i].regDate;
-				tr.append(td);
-				
-				td = document.createElement("td");
-				aTag = document.createElement("a");
-				var contractLink = "http://hanainfo.kr:8080/rcsms/" + data[i].cCode;
-				aTag.setAttribute("href", contractLink);
-				aTag.innerHTML = "예약내역link";
-				td.append(aTag);
-				tr.append(td);
-				
-				td = document.createElement("td");
-				btn_link = document.createElement("button");
-				btn_link.setAttribute("id", data[i].cCode);
-				btn_link.innerHTML = "링크복사";
-				btn_link.onclick = function() {
-					var linkStr = "http://hanainfo.kr:8080/rcsms/" + this.id;
-					
-					var request = gapi.client.urlshortener.url.insert({
-					    'resource' : {
-					        'longUrl' : linkStr
-					    }
-					});
-					request.execute(function(response) {
-					    if (response.id != null) {        
-					        //console.log(response.id);
-					        copyToClipboard(response.id);
-					    } else {
-					        console.log("error: creating short url");
-					    }
-					});
-				}
-				td.append(btn_link);
-				tr.append(td);
-				
-				if(checkFrontName(i, data[i].cName, data)) {
-					var tdRowSpan = checkDuplName(i, data[i].cName, data);
-					
-					td = document.createElement("td");
-					td.setAttribute("rowspan", tdRowSpan);
-					
-					if('N' == data[i].sendSMS) {
-						var button = document.createElement("button");
-						button.setAttribute("id", data[i].cCode);
-						button.setAttribute("data-rowNum", data[i].idx);
-						button.innerHTML = data[i].cName + "님께 SMS 전송";
-						button.onclick = function() {
-							sendSMS(this.getAttribute("data-rowNum"), data);				
-						};
-						td.append(button);
-					} else {
-						td.innerHTML = "SMS 전송완료";
-					}
-					
-					tr.append(td);	
-				}
-				
-				$("#contractTb").append(tr);				
-			}
-			$("body").mLoading('hide');
-		},
-		error: function (e) {
-			console.log("ERROR: ", e);
-			display(e);
-        }
-	});
-}
-
-function sendSMS(dataIdx, data) {
 	var ctrData = {};
 	ctrData["idx"] = dataIdx;
 	ctrData["cName"] = data[dataIdx - data[0].idx].cName;
 	ctrData["phone"] = data[dataIdx - data[0].idx].phone;
 	ctrData["cDesc"] = data[dataIdx - data[0].idx].cDesc;
+	ctrData["op1"] = data[dataIdx - data[0].idx].op1;	// short URL
+	ctrData["op2"] = rowspanValue; // rowspan value
 	
 	//console.log(ctrData);
 	$.ajax({
@@ -414,8 +272,11 @@ function sendSMS(dataIdx, data) {
 			//console.log("SUCCESS: ", data);
 			//display(data);
 			if(data) {
-				alert("SMS 전송완료!");	
+				$("body").mLoading('hide');
+				alert("SMS 전송완료!");
+				getContractsWithDate();
 			} else {
+				$("body").mLoading('hide');
 				alert("SMS 전송실패!");
 			}
 		},
@@ -470,6 +331,55 @@ function goWithUpload() {
 	});
 }
 
+function sendSMSAllWithDate() {
+	$("body").mLoading({
+		  text:"Sending SMS...",
+	});
+	
+	var sendSMSdate = "";
+	if(null == $("#datepicker").val() || "" == $("#datepicker").val()) {
+	    sendSMSdate = getTodayDate();
+	} else {
+		sendSMSdate = $("#datepicker").val();
+	}
+	
+	var ctrData = {};
+	ctrData["regDate"] = sendSMSdate;
+
+	$.ajax({
+		type: 'POST',
+		contentType: "application/json",
+		url:'./sendSMSAllWithDate',
+		data: JSON.stringify(ctrData),
+		dataType: 'json',
+		success: function(data){
+			//console.log("SUCCESS: ", data);
+			//display(data);
+			if(data) {
+				$("body").mLoading('hide');
+				alert("SMS 일괄전송완료!");
+				getContractsWithDate();
+			} else {
+				$("body").mLoading('hide');
+				alert("SMS 일괄전송실패!");
+			}
+		},
+		error: function (e) {
+			console.log("ERROR: ", e);
+			display(e);
+			alert("SMS 일괄전송에러발생!");
+        }
+	});
+}
+
+function getTodayDate() {
+	var now = new Date();
+    var year= now.getFullYear();
+    var mon = (now.getMonth()+1)>9 ? ''+(now.getMonth()+1) : '0'+(now.getMonth()+1);
+    var day = now.getDate()>9 ? ''+now.getDate() : '0'+now.getDate();
+    return year + '-' + mon + '-' + day;
+}
+
 </script>
 
 <body style="overflow-y: auto;">
@@ -478,6 +388,7 @@ function goWithUpload() {
 			<button class="replace">엑셀파일선택</button><input type="file" name="file" class="upload">
 			<input type="submit" value="업로드" onclick="goWithUpload()">
 			<input type="text" id="datepicker" placeholder="날짜선택">
+			<input type="button" value="SMS일괄전송" onclick="sendSMSAllWithDate()">
 		</form>	
 	</div>
 	

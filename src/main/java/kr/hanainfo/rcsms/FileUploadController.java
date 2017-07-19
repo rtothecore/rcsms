@@ -1,5 +1,6 @@
 package kr.hanainfo.rcsms;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -9,11 +10,16 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 
 import org.apache.poi.ss.usermodel.Cell;
@@ -22,6 +28,8 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.json.JSONObject;
+//import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
@@ -34,6 +42,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.services.urlshortener.Urlshortener;
+import com.google.api.services.urlshortener.UrlshortenerScopes;
 
 import kr.hanainfo.rcsms.dao.ContractsDao;
 import kr.hanainfo.rcsms.dao.ContractsVo;
@@ -48,6 +60,96 @@ public class FileUploadController {
     
     @Resource(name = "contractsDao")
     private ContractsDao contractsDao;
+    
+    // Google 단축URL 사용을 위한 URL
+    public static final String SHORTENER_URL = "https://www.googleapis.com/urlshortener/v1/url?key=";
+    public static final String API_KEY = "AIzaSyBXkHUIDpkPUQahj1UttBQuShfATwqygrg"; // 새로운 키 등록 필요
+     
+    //#######################################################################################
+    //      : 단축시킬 URL 주소를 String 문자열로 입력받고, Google API에 전송 (JSON 첨부)
+    //      : 결과 JSON String 데이터를 수신하여, JSONObject 혹은 Map(현재주석처리)으로 변환
+    //      : JSONObject 에서 단축URL을 String 타입으로 return
+    //      : 인증키당 일 100,000 변환 가능
+    //#######################################################################################  
+    public static String getShortenUrl(String originalUrl) {
+         
+        //System.out.println("[DEBUG] INPUT_URL : " + originalUrl );
+         
+        // Exception에 대비해 결과 URL은 처음에 입력 URL로 셋팅
+        String resultUrl = originalUrl;
+         
+        // Google Shorten URL API는 JSON으로 longUrl 파라미터를 사용하므로, JSON String 데이터 생성
+        String originalUrlJsonStr = "{\"longUrl\":\"" + originalUrl + "\"}";
+        //System.out.println("[DEBUG] INPUT_JSON : " + originalUrlJsonStr);
+         
+        // Google에 변환 요청을 보내기위해 java.net.URL, java.net.HttpURLConnection 사용
+        URL                 url         = null;
+        HttpURLConnection   connection  = null;
+        OutputStreamWriter  osw         = null;
+        BufferedReader      br          = null;
+        StringBuffer        sb          = null; // Google의 단축URL서비스 결과 JSON String Data
+        JSONObject          jsonObj     = null; // 결과 JSON String Data로 생성할 JSON Object
+         
+        // Google 단축 URL 요청을 위한 주소 - https://www.googleapis.com/urlshortener/v1/url
+        // get방식으로 key(사용자키) 파라미터와, JSON 데이터로 longUrl(단축시킬 원본 URL이 담긴 JSON 데이터) 를 셋팅하여 전송
+        try {
+            url = new URL(SHORTENER_URL + API_KEY);
+            //System.out.println("[DEBUG] DESTINATION_URL : " + url.toString() );
+             
+        }catch(Exception e){
+            System.out.println("[ERROR] URL set Failed");
+            e.printStackTrace();
+            return resultUrl;
+        }
+         
+        // 지정된 URL로 연결 설정
+        try{
+            connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("POST");
+            connection.setRequestProperty("User-Agent", "toolbar");
+            connection.setDoOutput(true);
+            connection.setRequestProperty("Content-Type", "application/json");
+        }catch(Exception e){
+            System.out.println("[ERROR] Connection open Failed");
+            e.printStackTrace();
+            return resultUrl;
+        }
+         
+        // 결과 JSON String 데이터를 StringBuffer에 저장
+        // 필요에 따라 JSON Obejct 혹은 Map으로 셋팅 (현재 Map은 주석처리)
+        try{
+            // Google 단축URL 서비스 요청
+            osw = new OutputStreamWriter(connection.getOutputStream());
+            osw.write(originalUrlJsonStr);
+            osw.flush();
+ 
+            // BufferedReader에 Google에서 받은 데이터를 넣어줌
+            br = new BufferedReader(new InputStreamReader(connection.getInputStream(), "UTF-8"));
+             
+            // BufferedReader 내 데이터 StringBuffer sb 에 저장
+            sb = new StringBuffer();
+            String buf = "";
+            while ((buf = br.readLine()) != null) {
+                sb.append(buf);
+            }
+            //System.out.println("[DEBUG] RESULT_JSON_DATA : " + sb.toString());
+             
+            // Google에서 받은 JSON String을 JSONObject로 변환
+            jsonObj = new JSONObject(sb.toString()); 
+            resultUrl = jsonObj.getString("id");
+             
+        }catch (Exception e) {
+            System.out.println("[ERROR] Result JSON Data(From Google) set JSONObject Failed");
+            e.printStackTrace();
+            return resultUrl;
+        }finally{
+            if (osw != null)    try{ osw.close();   } catch(Exception e) { e.printStackTrace(); }
+            if (br  != null)    try{ br.close();    } catch(Exception e) { e.printStackTrace(); }
+        }
+         
+        //System.out.println("[DEBUG] RESULT_URL : " + resultUrl);
+        return resultUrl;
+    }
     
     /**
 	 * Upload single file using Spring Controller
@@ -279,7 +381,12 @@ public class FileUploadController {
 						contractsVo.setCompany(currentRow.getCell(18).getStringCellValue());
 						contractsVo.setCarName(currentRow.getCell(19).getStringCellValue());
 						contractsVo.setFeeType(currentRow.getCell(21).getStringCellValue());
-						contractsVo.setOp1("");
+						
+						// goo.gl ShortenURL lib - https://developers.google.com/api-client-library/java/apis/urlshortener/v1
+						String longURL = "http://hanainfo.kr:8080/rcsms/" + contractsVo.getcCode();
+						String shortURL = getShortenUrl(longURL);
+						logger.info("Short URL=" + shortURL);
+						contractsVo.setOp1(shortURL);
 						contractsVo.setOp2("");
 						contractsVo.setOp3("");
 						contractsVo.setOp4("");
@@ -362,7 +469,7 @@ public class FileUploadController {
 	 */
 	@RequestMapping(value = "/getContractsWithDate", method = RequestMethod.POST)
 	public @ResponseBody List<ContractsVo> getContractsWithDate(@RequestBody ContractsVo cv, HttpSession session) {
-		logger.info("Get list of contracts");
+		logger.info("Get list of contracts with date");
 		List<ContractsVo> list = this.contractsDao.getSelectWithDate(cv.getRegDate());
 
 		return list;
@@ -374,15 +481,47 @@ public class FileUploadController {
 	@RequestMapping(value = "/sendSMS", method = RequestMethod.POST)
 	public @ResponseBody
 	boolean sendSMS(@RequestBody ContractsVo cv, HttpServletRequest request) {
-		
-		logger.info("cIdx:" + cv.getIdx() + ", contractName:" + cv.getcName() + ", contractPhone:" + cv.getPhone() + ", contractDesc:" + cv.getcDesc());
-		
 		// 1. send SMS
+		logger.info("sendSMS!-cIdx:" + cv.getIdx() + ", contractName:" + cv.getcName() 
+					+ ", contractPhone:" + cv.getPhone() + ", contractDesc:" + cv.getcDesc() + ", link:" + cv.getOp1() + ", rowspan:" + cv.getOp2());
 		
 		// 2. update DB
+		int startIdx = cv.getIdx();
+		int rowspanVal = Integer.parseInt(cv.getOp2());
+		int idx = 0;
+		while(idx < rowspanVal) {
+			this.contractsDao.updateSendSMS(String.valueOf(startIdx++));
+			idx++;
+		}
 		
 		return true;
 	}
 	
+	/**
+	 * Send all SMS with date
+	 */
+	@RequestMapping(value = "/sendSMSAllWithDate", method = RequestMethod.POST)
+	public @ResponseBody
+	boolean sendSMSAllWithDate(@RequestBody ContractsVo cv, HttpServletRequest request) {
+		
+		logger.info("Get list of contracts with regDate:" + cv.getRegDate());
+		
+		// 1. select contracts with date and sendSMS ='N'
+		List<ContractsVo> list = this.contractsDao.getSelectWithDataNSendSMS(cv.getRegDate());
+		
+		String beforeName = "";
+		// 2. send SMS for selected contracts
+		for(int i=0; i<list.size(); i++) {
+			if(!beforeName.equals(list.get(i).getcName())) {	// check continuous record(checking same cName )
+				logger.info("sendSMS ALL!-" + list.get(i).getcName() + "|" + list.get(i).getPhone() + "|" + list.get(i).getcDesc() + "|" + list.get(i).getOp1());
+				beforeName = list.get(i).getcName();
+			}
+			
+			// 3. update DB
+			this.contractsDao.updateSendSMS(String.valueOf(list.get(i).getIdx()));
+		}
+		
+		return true;
+	}
 	
 }

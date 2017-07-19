@@ -39,10 +39,37 @@
     </select>
     
     <select id="selectWithDate" resultMap="contractsMap">
-    	SELECT * FROM contracts WHERE regDate = #{regDate}
+    	SELECT * FROM contracts 
+    	WHERE regDate = #{regDate}
     </select>
     
-<!--     
+    <select id="selectWithDataNSendSMS" resultMap="contractsMap">
+    	SELECT * FROM contracts 
+    	WHERE regDate = #{regDate} AND sendSMS = "N"
+    </select>
+    
+    <update id="updateSendSMS">
+    	UPDATE contracts SET
+    			sendSMS = "Y"
+    	WHERE idx = #{idx} 
+    </update>
+    
+    <update id="updateShortURL">
+    	UPDATE contracts SET
+    			op1 = #{shortURL}
+    	WHERE idx = #{idx}
+    </update>
+    
+<!--
+	<update id="update">
+         UPDATE bbs SET
+              user_name = #{user_name},
+              subject = #{subject},
+              content = #{content},
+              reg_datetime = curdate()
+         WHERE idx = #{idx} LIMIT 1
+    </update>
+     
     <select id="selectSpecificOwnerId" resultMap="photosMap">
     	SELECT * FROM photos WHERE owner_id = #{owner_id}
     </select>

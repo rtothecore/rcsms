@@ -205,6 +205,21 @@
 		    <artifactId>json-simple</artifactId>
 		    <version>1.1.1</version>
 		</dependency>
+		
+		<!-- https://developers.google.com/api-client-library/java/apis/urlshortener/v1 -->
+		<dependency>
+	      <groupId>com.google.apis</groupId>
+	      <artifactId>google-api-services-urlshortener</artifactId>
+	      <version>v1-rev48-1.22.0</version>
+	    </dependency>
+	    
+	    <!-- https://mvnrepository.com/artifact/org.json/json -->
+		<dependency>
+		    <groupId>org.json</groupId>
+		    <artifactId>json</artifactId>
+		    <version>20170516</version>
+		</dependency>
+			    
 	</dependencies>
     <build>
         <plugins>
