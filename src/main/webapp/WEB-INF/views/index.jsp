@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<title>Upload File Request Page</title>
+<title>Rentcar SMS System</title>
 </head>
 <link rel="stylesheet" type="text/css" href="./resources/css/common.css">
 <link rel="stylesheet" type="text/css" href="./resources/css/jquery.mloading.css">
@@ -51,7 +51,7 @@ function load() {
 		         monthNamesShort: ['1','2','3','4','5','6','7','8','9','10','11','12'],
 		         monthNames: ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월']
 			 }).on("change", function (e) {
-			        console.log("Date changed: ", e.target.value);
+			        //console.log("Date changed: ", e.target.value);
 			        getContractsWithDate(e.target.value);
 			 });
 		 });		 
@@ -72,7 +72,7 @@ function createShortURL(longURL, shortURL) {
 	});
 	request.execute(function(response) {
 	    if (response.id != null) {        
-	        console.log(response.id);
+	        //console.log(response.id);
 	        shortURL = response.id;
 	    } else {
 	        console.log("error: creating short url");
@@ -93,8 +93,8 @@ function getContractsWithDate(dateValue) {
 		data: JSON.stringify(ctrData),
 		dataType: 'json',
 		success: function(data){
-			console.log("SUCCESS: ", data);
-			display(data);
+			//console.log("SUCCESS: ", data);
+			//display(data);
 			
 			$("#contractTb tr").remove();
 			
@@ -197,7 +197,7 @@ function getContractsWithDate(dateValue) {
 					});
 					request.execute(function(response) {
 					    if (response.id != null) {        
-					        console.log(response.id);
+					        //console.log(response.id);
 					        copyToClipboard(response.id);
 					    } else {
 					        console.log("error: creating short url");
@@ -249,8 +249,8 @@ function getContracts() {
 		url:'./getContracts',
 		dataType: 'json',
 		success: function(data){
-			console.log("SUCCESS: ", data);
-			display(data);
+			//console.log("SUCCESS: ", data);
+			//display(data);
 			
 			$("#contractTb tr").remove();
 			
@@ -353,7 +353,7 @@ function getContracts() {
 					});
 					request.execute(function(response) {
 					    if (response.id != null) {        
-					        console.log(response.id);
+					        //console.log(response.id);
 					        copyToClipboard(response.id);
 					    } else {
 					        console.log("error: creating short url");
@@ -411,8 +411,8 @@ function sendSMS(dataIdx, data) {
 		data: JSON.stringify(ctrData),
 		dataType: 'json',
 		success: function(data){
-			console.log("SUCCESS: ", data);
-			display(data);
+			//console.log("SUCCESS: ", data);
+			//display(data);
 			if(data) {
 				alert("SMS 전송완료!");	
 			} else {
