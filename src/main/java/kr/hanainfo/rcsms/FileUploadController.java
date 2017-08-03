@@ -411,8 +411,9 @@ public class FileUploadController {
 				}
 
 				logger.info("Server File Location=" + serverFile.getCanonicalPath());
-
-				return "You successfully uploaded file=" + tempFilename;
+				serverFile.delete();	// Delete successful process file!
+				
+				return "You successfully processing file=" + tempFilename;
 			} catch (Exception e) {
 				serverFile.delete();
 				return "You failed to upload " + tempFilename + " => " + e.getMessage() + ", Error at (" + (accessRowIdx+1) + ", " + accessColIdx + ")";
